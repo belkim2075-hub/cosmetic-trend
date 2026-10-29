@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>K-더마 데일리 인사이트 | 애프터케어 & 더마코스메틱 트렌드 대시보드</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts (Inter, Noto Sans KR) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans KR', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              200: '#a7f3d0',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              800: '#065f46',
+              900: '#064e3b',
+            },
+            clinical: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .scrollbar-hide::-webkit-scrollbar {
+      display: none;
+    }
+    .scrollbar-hide {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 dark:bg-slate-900 dark:text-slate-100 min-h-screen transition-colors duration-200">
+
+  <!-- Toast Notification Container -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none flex items-center gap-2 bg-slate-900 text-white dark:bg-emerald-600 px-4 py-3 rounded-xl shadow-2xl text-sm font-medium">
+    <svg class="w-5 h-5 text-emerald-400 dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+    <span id="toast-message">알림</span>
+  </div>
+
+  <!-- Header & Navigation -->
+  <header class="sticky top-0 z-40 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        
+        <!-- Logo & Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center text-white shadow-md shadow-emerald-500/20">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold text-lg tracking-tight text-slate-900 dark:text-white">K-Derma Daily</span>
+              <span class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-900/50 dark:text-emerald-300">LIVE</span>
+            </div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">애프터케어 & 더마코스메틱 데일리 트렌드 대시보드</p>
+          </div>
+        </div>
+
+        <!-- Main Nav Tabs -->
+        <nav class="hidden md:flex items-center gap-1 bg-slate-100 dark:bg-slate-800/60 p-1 rounded-xl text-sm font-medium">
+          <button id="nav-briefings" class="px-4 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm text-emerald-600 dark:text-emerald-400">일일 브리핑</button>
+          <button id="nav-ingredients" class="px-4 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white">성분·시술 사전</button>
+          <button id="nav-bookmarks" class="px-4 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white flex items-center gap-1.5">
+            북마크
+            <span id="bookmark-badge" class="w-4 h-4 text-[10px] rounded-full bg-emerald-500 text-white flex items-center justify-center hidden">0</span>
+          </button>
+        </nav>
+
+        <!-- Right Tools: Theme & Deploy Guide -->
+        <div class="flex items-center gap-2">
+          <button id="btn-deploy-guide" class="text-xs font-semibold px-3 py-2 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 transition-colors flex items-center gap-1.5 border border-emerald-200 dark:border-emerald-800">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+            <span class="hidden sm:inline">홈페이지 배포 가이드</span>
+          </button>
+          <button id="theme-toggle" class="p-2 rounded-lg text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800 transition-colors" title="다크/라이트 모드">
+            <svg id="theme-sun" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+            <svg id="theme-moon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mobile Nav Bar -->
+    <div class="flex md:hidden border-t border-slate-200 dark:border-slate-800 px-4 py-2 gap-2 bg-slate-50 dark:bg-slate-900/50 text-xs font-medium justify-around">
+      <button id="mobile-nav-briefings" class="text-emerald-600 dark:text-emerald-400 font-semibold">일일 브리핑</button>
+      <button id="mobile-nav-ingredients" class="text-slate-500 dark:text-slate-400">성분·시술 사전</button>
+      <button id="mobile-nav-bookmarks" class="text-slate-500 dark:text-slate-400">북마크</button>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- Top KPI Banners -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold mb-2">
+          <span>K-더마 수출 성장세</span>
+          <span class="text-emerald-500 bg-emerald-50 dark:bg-emerald-950/60 px-1.5 py-0.5 rounded">+29.2%</span>
+        </div>
+        <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">$114억+</div>
+        <p class="text-[11px] text-slate-400 mt-1">글로벌 2위 수출국 도약 견인</p>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold mb-2">
+          <span>약국·헬스케어 점유율</span>
+          <span class="text-blue-500 bg-blue-50 dark:bg-blue-950/60 px-1.5 py-0.5 rounded">1위</span>
+        </div>
+        <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">59.6%</div>
+        <p class="text-[11px] text-slate-400 mt-1">파머시 뷰티존 200호점 돌파</p>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold mb-2">
+          <span>스킨케어 내 더마 비중</span>
+          <span class="text-teal-500 bg-teal-50 dark:bg-teal-950/60 px-1.5 py-0.5 rounded">2배 급증</span>
+        </div>
+        <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">17.0%</div>
+        <p class="text-[11px] text-slate-400 mt-1">기초 품질의 표준 스펙 정착</p>
+      </div>
+
+      <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+        <div class="flex items-center justify-between text-slate-500 dark:text-slate-400 text-xs font-semibold mb-2">
+          <span>대표 시술 사후관리</span>
+          <span class="text-amber-500 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded">메가트렌드</span>
+        </div>
+        <div class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Downtime Care</div>
+        <p class="text-[11px] text-slate-400 mt-1">스킨부스터·레이저 연계 케어</p>
+      </div>
+    </section>
+
+    <!-- SECTION 1: Daily Briefings View -->
+    <div id="view-briefings" class="space-y-6">
+      
+      <!-- Filter Bar: Search, Category, Date Selector -->
+      <div class="bg-white dark:bg-slate-800 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+          
+          <!-- Date Selector Dropdown -->
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">날짜 선택:</span>
+            <select id="date-select" class="bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-sm font-semibold rounded-xl px-3 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+              <!-- Injected via JavaScript -->
+            </select>
+          </div>
+
+          <!-- Search Input -->
+          <div class="relative flex-1 sm:max-w-md">
+            <input type="text" id="search-input" placeholder="성분, 시술, 브랜드 검색 (예: PDRN, 다이소, 엑소좀)" class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-sm rounded-xl pl-9 pr-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:outline-none placeholder-slate-400">
+            <svg class="w-4 h-4 text-slate-400 absolute left-3 top-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <button id="search-clear" class="hidden absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-xs bg-slate-200 dark:bg-slate-700 rounded-full w-4 h-4 flex items-center justify-center">&times;</button>
+          </div>
+        </div>
+
+        <!-- Category Tags -->
+        <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-hide text-xs" id="category-chips">
+          <button data-cat="all" class="cat-chip px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium shadow-sm transition-all">전체보기</button>
+          <button data-cat="PDRN·엑소좀" class="cat-chip px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-200 transition-all">#PDRN·엑소좀</button>
+          <button data-cat="장벽리페어" class="cat-chip px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-200 transition-all">#장벽리페어</button>
+          <button data-cat="시술사후관리" class="cat-chip px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-200 transition-all">#시술사후관리</button>
+          <button data-cat="제약사더마" class="cat-chip px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-200 transition-all">#제약사더마</button>
+          <button data-cat="신기술·특허" class="cat-chip px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-200 transition-all">#신기술·특허</button>
+        </div>
+      </div>
+
+      <!-- Main Briefing Article Card -->
+      <article class="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm overflow-hidden">
+        
+        <!-- Briefing Header -->
+        <div class="p-6 border-b border-slate-100 dark:border-slate-700/60 flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-emerald-50/40 via-white to-transparent dark:from-emerald-950/20 dark:via-slate-800 dark:to-transparent">
+          <div>
+            <div class="flex items-center gap-2 mb-1.5">
+              <span id="briefing-date-badge" class="px-2.5 py-0.5 rounded-md text-xs font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/60 dark:text-emerald-300">2026-10-27</span>
+              <span id="briefing-meta-tag" class="text-xs text-slate-400">일일 종합 브리핑</span>
+            </div>
+            <h2 id="briefing-title" class="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white tracking-tight">100년 제약사의 다이소 뷰티 전면전 & K-더마 수출 29.2% 급증</h2>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <button id="btn-copy-briefing" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 text-xs font-semibold" title="브리핑 전문 복사">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+              <span>복사</span>
+            </button>
+            <button id="btn-bookmark" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center gap-1.5 text-xs font-semibold">
+              <svg id="bookmark-icon" class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"></path></svg>
+              <span id="bookmark-text">북마크</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Briefing Content Sections -->
+        <div id="briefing-body" class="p-6 sm:p-8 space-y-8 leading-relaxed text-slate-700 dark:text-slate-300">
+          <!-- Injected via JavaScript -->
+        </div>
+      </article>
+
+      <!-- Archive Browser Strip -->
+      <section class="mt-8">
+        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3">최근 브리핑 히스토리</h3>
+        <div id="archive-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <!-- Injected via JavaScript -->
+        </div>
+      </section>
+    </div>
+
+    <!-- SECTION 2: Ingredient & Procedure Dictionary View -->
+    <div id="view-ingredients" class="hidden space-y-6">
+      <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">애프터케어 핵심 성분 & 시술 매칭 사전</h2>
+            <p class="text-xs text-slate-500 mt-1">피부과 레이저, 고주파, 스킨부스터 시술 후 적용되는 핵심 바이오 유효 성분 분석</p>
+          </div>
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300">12대 핵심 성분</span>
+        </div>
+        <div id="ingredients-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: Bookmarks View -->
+    <div id="view-bookmarks" class="hidden space-y-6">
+      <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl border border-slate-200 dark:border-slate-700/60 shadow-sm">
+        <div class="flex items-center justify-between mb-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 dark:text-white">저장한 북마크 브리핑</h2>
+            <p class="text-xs text-slate-500 mt-1">관심 있는 일자의 트렌드 브리핑을 보관하고 언제든 열람할 수 있습니다.</p>
+          </div>
+          <button id="btn-clear-bookmarks" class="text-xs text-rose-500 hover:underline">북마크 전체 삭제</button>
+        </div>
+        <div id="bookmarks-container" class="space-y-3">
+          <!-- Injected via JavaScript -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Deploy Guide Modal -->
+  <div id="deploy-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 dark:border-slate-700 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-700">
+        <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
+          <span>🌐 나만의 전용 홈페이지로 무료 배포하는 방법</span>
+        </h3>
+        <button id="btn-close-deploy" class="text-slate-400 hover:text-slate-600 text-lg font-bold">&times;</button>
+      </div>
+
+      <div class="space-y-4 text-sm text-slate-600 dark:text-slate-300">
+        <p>이 대시보드는 <strong>단일 HTML 파일</strong>로 제작되어, 무료 호스팅 서비스를 통해 스마트폰이나 PC 브라우저에서 언제든 접속할 수 있는 나만의 웹사이트 주소(URL)를 가질 수 있습니다.</p>
+
+        <div class="space-y-2">
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+            <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
+              <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">1</span>
+              Netlify Drop (10초 무료 배포 - 초간편)
+            </h4>
+            <p class="text-xs text-slate-500">
+              1. <a href="https://app.netlify.com/drop" target="_blank" class="text-emerald-600 underline">app.netlify.com/drop</a> 에 접속합니다.<br>
+              2. 이 HTML 파일 이름을 <code>index.html</code>로 바꾼 후 폴더에 넣고 드래그&드롭합니다.<br>
+              3. 즉시 생성되는 나만의 전용 주소(예: <code>https://my-derma-briefing.netlify.app</code>)로 접속합니다.
+            </p>
+          </div>
+
+          <div class="p-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700">
+            <h4 class="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 mb-1">
+              <span class="w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center text-xs">2</span>
+              GitHub Pages (영구 무료 호스팅)
+            </h4>
+            <p class="text-xs text-slate-500">
+              1. GitHub에 새 저장소(예: <code>derma-trends</code>)를 생성합니다.<br>
+              2. 이 파일을 <code>index.html</code>로 업로드합니다.<br>
+              3. 저장소 <code>Settings</code> &gt; <code>Pages</code>에서 브랜치를 <code>main</code>으로 지정하면 <code>https://&lt;내계정&gt;.github.io/derma-trends</code> 로 영구 무료 배포됩니다.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-2 flex justify-end">
+        <button id="btn-modal-ok" class="px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors">확인 완료</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="mt-16 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60 py-8 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-slate-600 dark:text-slate-300">K-Derma Daily Insight</span>
+        <span>•</span>
+        <span>대한민국 애프터케어 & 더마코스메틱 트렌드 모니터</span>
+      </div>
+      <div>
+        <span>매일 오전 9시 최신 웹 트렌드 업데이트 자동 반영</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Application Logic (JavaScript) -->
+  <script>
+    // --- Daily Briefings Data Store ---
+    const BRIEFINGS_DATA = [
+      {
+        id: "2026-10-29",
+        date: "2026-10-29",
+        title: "11월 블프 선제 공략 개막 & 시술 후 콜라겐 펩타이드 재생 특허",
+        tags: ["신기술·특허", "시술사후관리", "장벽리페어"],
+        summary: "11월 글로벌 블랙프라이데이 대목을 앞두고 K-더마의 선제적 프로모션이 개막했습니다. 레이저 시술 후 조직 회복을 40% 단축시키는 콜라겐 펩타이드 복합 특허와 환절기 화장품 다이어트가 부상했습니다.",
+        sections: [
+          {
+            title: "1. 글로벌 유통 및 시즌 동향: 11월 '얼리 블랙프라이데이' 대목 선제 공략",
+            points: [
+              "11월 글로벌 쇼핑 성수기(블랙프라이데이·광군제)를 앞두고 아이소이 등 K-더마 브랜드들이 10월 말부터 선제적인 대규모 특가 프로모션을 조기 개막했습니다.",
+              "지난해 아마존 블프 1~3위를 휩쓸었던 K-더마(메디큐브, 달바 등)의 성공 모델을 바탕으로 북미와 유럽 온·오프라인 채널에서 시술 연계 리페어 앰플과 크림이 메인 타깃으로 출격합니다."
+            ]
+          },
+          {
+            title: "2. 성분 및 재생 특허 동향: 레이저 시술 후 '콜라겐 펩타이드 재생 촉진' 입증",
+            points: [
+              "특허청에 등록된 레이저 시술 후 재생 촉진용 조성물 연구에 따르면, 레이저 열 손상 후 콜라겐 펩타이드 복합체를 적용했을 때 섬유아세포 증식과 조직 회복 속도가 40% 이상 가속화되는 메커니즘이 확인되었습니다.",
+              "인위적 필러 시술이 아닌 자가 콜라겐 재생(울써마지, 쥬베룩 등) 시술 후 진피층에 직접적인 생합성 원료를 공급하는 핵심 사후관리 원료로 펩타이드가 재조명받고 있습니다."
+            ]
+          },
+          {
+            title: "3. 환절기 처방 트렌드: 과도한 덧바름을 줄이는 '스킨케어 다이어트'",
+            points: [
+              "가을·겨울 환절기 찬 바람과 실내 난방이 시작되는 시기에 여러 단계의 영양 크림을 덧바르면 오히려 모공 폐쇄와 알레르기를 유발할 수 있습니다.",
+              "피부과 전문의들은 세안 직후 고순도 리포좀 EGF/판테놀 수분 공급 후, 세콜지(세라마이드·콜레스테롤·지방산) 페이셜 오일막으로 얇게 밀폐하는 '2단계 화장품 다이어트'를 권장하고 있습니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "11월 공식 블프 전 10월 말부터 시작되는 '얼리버드 블프 특가전'을 통해 환절기 대용량 PDRN 앰플과 세라마이드 리페어 밤을 묶은 세트 기획이 초기 매출 볼륨을 극대화합니다.",
+              "단순 보습을 넘어 '레이저 시술 후 손상된 조직의 재생 기간을 40% 단축시키는 특허 펩타이드'라는 인과관계 중심의 기전 시각화가 고관여 소비자의 신뢰를 확보합니다."
+            ]
+          }
+        ]
+      },
+      {
+        id: "2026-10-28",
+        date: "2026-10-28",
+        title: "제약 더마의 오프라인 침투 가속 & 토닝 후 트라넥삼산·글루타치온 듀얼 미백",
+        tags: ["제약사더마", "시술사후관리", "신기술·특허"],
+        summary: "일동제약 퍼스트랩의 대형마트 입점 및 한방 더마의 600개 한의원 침투 등 전문 더마의 유통망이 전방위로 확장되고 있습니다. 레이저 토닝 후 색소침착(PIH)을 자극 없이 차단하는 트라넥삼산과 글루타치온 복합 처방이 정착되었습니다.",
+        sections: [
+          {
+            title: "1. 주요 기업 및 유통망 확장: 제약·전문 더마의 오프라인 생활 접점 확대",
+            points: [
+              "일동헬스케어의 프로바이오틱스 더마 브랜드 '퍼스트랩'이 이마트 와우샵 등 대형마트 오프라인 체험형 매대에 입점하며 소비자의 일상 접근성을 대폭 높였습니다.",
+              "전통 본초 성분과 성분과학을 결합한 한방 더마 '레이시올로지'가 론칭 6개월 만에 전국 600개 한의원에 입점하는 등, 양방 피부과를 넘어 한의원 미용 시술 사후 처방으로 클리닉 거점이 다변화되고 있습니다."
+            ]
+          },
+          {
+            title: "2. 글로벌 시장 및 수출 지표: K-더마가 이끄는 기초화장품 수출 고공행진",
+            points: [
+              "국내 기초화장품 수출이 전년 대비 29% 이상의 고성장을 이어가는 가운데, 전 세계적으로 로레알 더마톨로지컬 뷰티(LDB)의 고성장과 맞물려 효능 중심의 K-더마가 수출 확대를 주도하고 있습니다.",
+              "단순 감성 마케팅을 넘어 병·의원 임상 데이터와 약학적 안전성을 갖춘 K-클리니컬 포뮬러가 글로벌 유통 바이어들의 최우선 수주 품목으로 안착했습니다."
+            ]
+          },
+          {
+            title: "3. 성분 및 색소 방어 기전: 토닝 시술 후 '트라넥삼산 + 글루타치온' 듀얼 차단",
+            points: [
+              "피코토닝, 레이저 토닝 후 멜라닌 세포가 자극받아 발생하는 염증 후 색소침착(PIH)을 방지하기 위해 트라넥삼산과 글루타치온의 복합 페어링이 표준 처방으로 정착되었습니다.",
+              "자극적인 고농도 비타민C 대신, 멜라닌 형성 효소(티로시나아제)를 억제하는 트라넥삼산과 산화 스트레스를 없애 밝은 페오멜라닌으로 유도하는 글루타치온의 시너지가 안전한 사후 미백 골든 스탠다드로 평가받고 있습니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "전문 클리닉 독점 유통의 한계를 넘어 대형마트 체험존, 한의원, 약국 등으로 오프라인 접점을 다변화하는 B2B2C 파트너십 확장이 브랜드 매출 저변을 넓히는 핵심 전략입니다.",
+              "레이저 후 자극 없이 멜라닌 생성을 2중으로 잠그는 '무자극 멜라닌 락킹(Melanin-Locking) 듀오' 스토리텔링을 통해 시술 환자의 재구매를 유도하는 상품 기획이 효과적입니다."
+            ]
+          }
+        ]
+      },
+      {
+        id: "2026-10-27",
+        date: "2026-10-27",
+        title: "100년 제약사의 다이소 뷰티 전면전 & K-더마 수출 29.2% 급증",
+        tags: ["제약사더마", "시술사후관리", "신기술·특허"],
+        summary: "유한양행에 이어 동화약품이 다이소 전용 더마 라인업을 론칭하며 100년 전통 제약사의 5,000원 균일가 채널 전면전이 시작되었습니다. 엑소좀 스킨부스터 후 3일 재생 골든타임 수칙이 확립되었습니다.",
+        sections: [
+          {
+            title: "1. 주요 기업 및 유통 격돌: 100년 제약사의 다이소 전면전 (동화약품 vs 유한양행)",
+            points: [
+              "전통 제약 대기업 유한양행의 '더마푸라민Rx' 출시에 이어 동화약품도 다이소 전용 더마 라인업을 전격 선보이며 5,000원 균일가 채널에서 정면 승부를 개시했습니다.",
+              "약국과 올리브영 중심 프리미엄 유통을 넘어 1020 잘파(Zalpha) 세대와 3040 실용 소비자를 동시에 선점하기 위해 제약사의 핵심 진정·리페어 기술을 대량 양산형 균일가 포맷으로 이식하는 채널 다변화가 가속화되고 있습니다."
+            ]
+          },
+          {
+            title: "2. 글로벌 수출 및 시장 동향: 기초화장품 수출 29.2% 급증 견인",
+            points: [
+              "1~9월 국내 기초화장품 수출액이 전년 대비 29.2% 급증한 핵심 배경으로 피부과학에 기반한 더마코스메틱의 폭발적 수요가 지목되었습니다.",
+              "로레알 그룹의 상반기 실적에서도 더마톨로지컬 뷰티(LDB) 매출 성장률(+10.6%)이 그룹 전체를 크게 앞지른 것처럼, 전 세계적으로 단순 브랜드 감성보다 피부 장벽 복구와 시술 후 재생을 실증한 제품으로 글로벌 소비가 수렴하고 있습니다."
+            ]
+          },
+          {
+            title: "3. 임상 사후관리 가이드: 엑소좀 스킨부스터 후 '3일 재생 골든타임'",
+            points: [
+              "포텐자, 미라젯 등 침습 장비 결합 엑소좀 시술 후 표피에 형성된 미세 홀이 닫히고 나노 소포체가 진피 섬유아세포로 침투하는 시술 후 3일간이 최종적인 피부결과 흉터 예방을 결정하는 골든타임으로 분석됩니다.",
+              "24시간 물세안 차단 및 이후 약산성 논포밍 클렌저 적용, 알코올·산(Acid)·레티놀 3대 자극원 배제 및 고농축 D-판테놀 수분 밀폐 유지가 권장됩니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "엔트리 유통 전용 서브 브랜드(Diffused Derma) 런칭: 유한양행과 동화약품처럼 핵심 유효 성분(세라마이드, 병풀 TECA) 기술력은 유지하면서 패키징을 실용화한 합리적 가격대의 전용 서브 라인 퍼널 설계가 효과적입니다.",
+              "시술 직후 3일 동안 피부 자생력을 극대화하는 '3-Day 단기 집중 회복 키트'는 클리닉 처방 및 홈케어 시장에서 강력한 구매 동기를 제공합니다."
+            ]
+          }
+        ]
+      },
+      {
+        id: "2026-10-26",
+        date: "2026-10-26",
+        title: "화해 글로벌 10월 랭킹과 동절기 '세라마이드 × 엑토인' 밤-투-오일",
+        tags: ["장벽리페어", "신기술·특허", "시술사후관리"],
+        summary: "글로벌 소비자들이 틱톡에서 본 K-더마를 화해에서 성분 검증하는 스마트 소비가 안착했습니다. 10월 말 기온 급강하에 대비해 세라마이드와 엑토인을 결합한 더블 캡슐 및 밤-투-오일 멜팅 제형이 부상했습니다.",
+        sections: [
+          {
+            title: "1. 글로벌 소비자 데이터: 화해 10월 랭킹과 '성분 검증형 소비' 정착",
+            points: [
+              "화해 비즈니스의 10월 글로벌 K-뷰티 트렌드 랭킹 분석 결과, 해외 소비자의 제품 조회가 여름철 진정에서 '손상 장벽 리페어 크림'과 '고농축 영양 앰플'로 완전히 이동했습니다.",
+              "글로벌 소비자들이 숏폼 영상으로 제품을 인지한 후 화해 플랫폼 등에서 전 성분 안전성과 실제 임상 데이터를 교차 검증하여 구매를 확정 짓는 '스마트 검증형 소비'가 표준화되었습니다."
+            ]
+          },
+          {
+            title: "2. 성분 및 제형 기술: 동절기 대비 '세라마이드 × 엑토인'과 밤-투-오일",
+            points: [
+              "아침 기온이 한 자릿수로 떨어지며 샤르드와 동아제약 등에서 세라마이드와 엑토인을 결합한 더블 캡슐 크림 및 극건조 리페어 밤을 잇따라 선보이고 있습니다.",
+              "도포 시에는 밤 텍스처를 유지하다가 피부 체온에 닿는 순간 오일 보호막으로 멜팅되어, 시술 후 민감해진 표피에 마찰을 주지 않으면서 수분 증발을 차단하는 기술이 각광받고 있습니다."
+            ]
+          },
+          {
+            title: "3. 시술 후 환경 스트레스: 난방·찬 바람에 대응하는 TEWL 급증 방어",
+            points: [
+              "레이저 토닝 및 필링 시술 후 표피 장벽이 얇아진 상태에서 실외 찬 바람과 실내 난방이 겹치면 경피 수분 손실량(TEWL)이 평소의 3배 이상으로 폭증합니다.",
+              "단순 오일 코팅이 아니라 각질층 지질 조성(세콜지 3:1:1)을 생체 비율로 메우고 펩타이드로 탄력 섬유를 지탱하는 복합 회복 관리가 필수적입니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "글로벌 소비자가 성분 데이터를 전수 검증하는 흐름에 맞춰 '20가지 주의 성분 배제, 피부 자극 지수 0.00, 전 성분 EWG 그린'을 전면에 투명하게 배치해 안심감을 극대화해야 합니다.",
+              "문지를 필요 없이 체온으로 부드럽게 녹아들어 시술 부위를 24시간 감싸주는 '체온 멜팅 24시간 실드' 스토리텔링이 유효합니다."
+            ]
+          }
+        ]
+      },
+      {
+        id: "2026-10-25",
+        date: "2026-10-25",
+        title: "복합 리프팅(울쎄라 × 써마지) 후 '층별(Layer-by-Layer) 재생 회복' 트렌드",
+        tags: ["시술사후관리", "PDRN·엑소좀", "신기술·특허"],
+        summary: "근막층을 조이는 울쎄라와 진피층을 조이는 써마지의 복합 시술이 가을철 리프팅 표준으로 부각되었습니다. 단순 진정에서 벗어나 세포 수용체 신호전달을 촉진하는 '세포 단위 메디컬 더마'로 전환되었습니다.",
+        sections: [
+          {
+            title: "1. 복합 리프팅 시술 연계: 울써마지(울쎄라 × 써마지) 후 층별 재생 회복",
+            points: [
+              "근막층(SMAS, 4.5mm)을 타깃하는 초음파와 진피 상·하층(2~3mm)을 타깃하는 고주파를 병행하는 '울써마지' 복합 시술이 가을철 리프팅의 표준으로 자리 잡았습니다.",
+              "진피 상층은 고주파 열감에 의한 급성 건조를 막기 위해 세라마이드로 즉각 밀폐하고, 진피 기저층은 PDRN과 펩타이드를 지속 공급해 신생 콜라겐 리모델링을 유도해야 합니다."
+            ]
+          },
+          {
+            title: "2. 산업 패러다임 전환: 보조적 진정에서 '세포 단위 메디컬 더마'로 대전환",
+            points: [
+              "과거 더마코스메틱이 '자극받은 민감 피부를 순하게 달래는 보조적 역할'에 그쳤다면, 현재는 세포 수용체와 직접 반응해 조직 복구와 진피 치밀도를 높이는 바이오-메디컬 솔루션으로 진화했습니다.",
+              "영국 Cosmetics Business 등 해외 전문 매체에서도 한국 약국 및 피부과 처방 실증 데이터를 K-뷰티 수출 경쟁력의 핵심 동력으로 평가하고 있습니다."
+            ]
+          },
+          {
+            title: "3. 10월 넷째 주 유통 동향: 초저가 생활유통과 프리미엄 전문관의 양극화",
+            points: [
+              "10월 더마 브랜드평판에서 에스트라, 닥터지, 피지오겔 등 정통 병원 기반 브랜드들이 최상위권을 유지하고 있습니다.",
+              "다이소의 5,000원 균일가 더마 라인업과 무신사 뷰티·올리브영의 프리미엄 클리니컬 라인으로 소비가 뚜렷하게 이원화되고 있습니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "초음파로 당긴 근막층 탄력과 고주파로 조인 진피 밀도를 동시에 지키는 듀얼 리프팅 앰플 콘셉트의 '진피 치밀도 회복 앰플' 기획이 설득력을 발휘합니다.",
+              "PDRN과 엑소좀이 세포 수용체에 결합해 진피 결합 조직 합성을 자극한다는 과학적 인과관계를 그래픽으로 입증하는 콘텐츠가 고관여 소비자의 구매를 이끌어냅니다."
+            ]
+          }
+        ]
+      },
+      {
+        id: "2026-10-24",
+        date: "2026-10-24",
+        title: "오송화장품엑스포 2,600억 수출상담 성료 & '덜어내는(Skinimalism)' 2-Step 회복법",
+        tags: ["신기술·특허", "시술사후관리", "장벽리페어"],
+        summary: "오송엑스포에서 바이오 인캡슐레이션 및 엑소좀 스킨부스터가 대규모 수출 상담을 달성했습니다. 딜로이트 리포트에 따르면 제약사의 K-더마 침투가 가속화되었으며 시술 후 2단계 미니멀 케어가 표준으로 부각되었습니다.",
+        sections: [
+          {
+            title: "1. B2B 엑스포 폐막 결산: '2026 오송화장품뷰티산업엑스포' 성료",
+            points: [
+              "청주 오스코에서 245개 기업 316개 부스 규모로 진행된 오송엑스포가 2,600억 원 규모의 수출 상담 실적을 달성하며 성황리 폐막했습니다.",
+              "나노 인캡슐레이션 기술, 식물성 엑소좀, PDRN 스킨부스터 신소재에 해외 바이어들의 상담과 계약 타진이 집중되었습니다."
+            ]
+          },
+          {
+            title: "2. 글로벌 컨설팅 리포트: 딜로이트 분석 '제약사의 더마 진입과 가치사슬 재편'",
+            points: [
+              "딜로이트 코리아 분석에 따르면 글로벌 더마코스메틱 시장이 2026년 500억 달러를 넘어서며 화장품 산업 내 가장 가파른 성장을 기록하고 있습니다.",
+              "전통 제약사들이 의약품 R&D 기술, 공인 임상 데이터, 약국 유통망을 앞세워 스킨케어 시장에 전면 진출해 '검증된 효능과 안전성'을 새로운 표준으로 확립했습니다."
+            ]
+          },
+          {
+            title: "3. 임상 사후관리 가이드: 가을철 시술 후 '덜어내는' 2-Step 회복법",
+            points: [
+              "가을철 급격한 기온 하강 상태에서 여러 영양 앰플을 과도하게 덧바르면 손상 장벽에 과부하를 주어 모낭염을 유발할 수 있습니다.",
+              "세안 직후 고순도 PDRN/EGF 앰플 1종으로 세포 신호를 활성화하고, 라멜라 크림 1종으로 얇게 밀폐하는 2단계 미니멀 프로토콜이 권장됩니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "시술 후 예민해진 피부에는 5단계 스킨케어가 독이 될 수 있으므로 딱 2가지 필수 단계(신호 앰플 + 장벽 크림)로 끝내는 루틴 다이어트 캠페인이 효과적입니다.",
+              "의약품 제조 기준에 준하는 엄격한 성분 정제 공정과 인체적용시험 데이터를 명시해 일반 화장품 브랜드와 차별화된 메디컬 더마의 기술적 권위를 확보해야 합니다."
+            ]
+          }
+        ]
+      },
+      {
+        id: "2026-10-23",
+        date: "2026-10-23",
+        title: "더마코스메틱이 화장품 수익성 핵심 견인 & 'ECM 복합 아미노산 + PDRN'",
+        tags: ["PDRN·엑소좀", "시술사후관리", "신기술·특허"],
+        summary: "IBK투자증권 리포트에 따르면 더마코스메틱이 화장품 산업의 핵심 수익성 엔진으로 지목되었습니다. 스킨부스터는 1세대 수분 단독에서 진피 세포외기질(ECM) 합성을 촉진하는 복합 아미노산+PDRN으로 진화했습니다.",
+        sections: [
+          {
+            title: "1. 산업 및 금융투자 분석: 화장품 산업의 핵심 수익성 엔진 '더마코스메틱'",
+            points: [
+              "IBK투자증권 분석에 따르면 화장품 기업들의 핵심 수익성 개선과 밸류에이션 프리미엄을 견인하는 주축으로 더마코스메틱과 뷰티 디바이스 결합 모델이 지목되었습니다.",
+              "시술 사후 관리 및 장벽 복구 목적의 더마 라인은 뚜렷한 임상 효능을 바탕으로 고객 이탈률이 낮고 객단가가 높아 핵심 캐시카우로 안착했습니다."
+            ]
+          },
+          {
+            title: "2. B2B 엑스포 현장: 오송엑스포 국제 기술혁신 컨퍼런스 개막",
+            points: [
+              "오송엑스포 2일 차에 'K-뷰티 기술혁신 및 글로벌 더마 트렌드' 국제 컨퍼런스가 개최되어 바이오 인캡슐레이션 및 지질 라멜라 신소재 교류가 집중 진행되었습니다.",
+              "열 손상 피부에 반응하는 나노 캡슐화 전달체와 식물성 엑소좀 원료에 해외 바이어들의 계약 타진이 이어졌습니다."
+            ]
+          },
+          {
+            title: "3. 스킨부스터 성분 고도화: 단순 수분을 넘어선 'ECM 복합 아미노산'",
+            points: [
+              "히알루론산만 주입하던 기존 스킨부스터 방식에서 벗어나 진피 세포외기질(ECM) 자체를 합성하는 필수 아미노산(글리신, 프롤린, 라이신)과 PDRN을 결합한 처방이 대세로 정착했습니다.",
+              "콜라겐과 엘라스틴 섬유 사이를 지탱하는 기저 물질을 직접 공급함으로써 레이저 후 처진 탄력과 미세 흉터 복구 속도를 가속화하고 있습니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "피부과 시술 직후 필수 처방 앰플이라는 클리니컬 고기능성 플래그십 라인을 포지셔닝하여 전체 브랜드의 신뢰도와 객단가를 견인하는 구조 설계가 필요합니다.",
+              "콜라겐 생성 필수 아미노산과 PDRN 복합체가 진피 매트릭스를 촘촘히 재건한다는 구체적 생물학적 기전을 시각화하는 콘텐츠가 고관여 소비자의 구매를 촉진합니다."
+            ]
+          }
+        ]
+      },
+      {
+        id: "2026-10-22",
+        date: "2026-10-22",
+        title: "오송화장품엑스포 청주 개막 & 유한양행 다이소 전용 '더마푸라민Rx' 출시",
+        tags: ["제약사더마", "신기술·특허", "시술사후관리"],
+        summary: "청주 오스코에서 2026 오송화장품뷰티엑스포가 개막했습니다. 유한양행이 5,000원 균일가 채널 전용 더마푸라민Rx 8종을 출시하며 제약사 더마의 초가성비 채널 침투가 본격화되었습니다.",
+        sections: [
+          {
+            title: "1. B2B 산업 현장 속보: 2026 오송화장품뷰티산업엑스포 개막",
+            points: [
+              "청주 오스코(OSCO)에서 230개 기업 316개 부스 규모로 오송엑스포가 개막하여 수출상담회 1,200회 이상이 전개되고 있습니다.",
+              "나노 캡슐레이션 기술, 엑소좀·PDRN 원료, 세포외기질 복원 화장품을 중심으로 글로벌 바이어와의 대규모 현장 계약 상담이 진행되었습니다."
+            ]
+          },
+          {
+            title: "2. 유통 파격 행보: 유한양행, 다이소 전용 '더마푸라민Rx' 8종 출시",
+            points: [
+              "전통 제약사 유한양행이 다이소 전용 더마코스메틱 브랜드 '더마푸라민Rx' 신제품 8종을 공식 출시했습니다.",
+              "제약사의 정밀 처방 노하우를 5,000원 균일가 채널에 맞춤 공급함으로써 약국과 H&B를 넘어 초가성비 채널까지 제약 더마의 소비 저변을 전방위로 넓혔습니다."
+            ]
+          },
+          {
+            title: "3. 학술 임상 데이터: 엑소좀 인체 임상연구 39편 메타분석 결과",
+            points: [
+              "엑소좀 인체 임상연구 39편 메타분석 결과, 엑소좀 스킨부스터 적용 시 주름 약 20%, 색소 및 피부결 탄력 지표가 15~23% 개선되는 조직 복구 효과가 확인되었습니다.",
+              "공인 시험성적서로 분리 정제 순도와 나노 소포체 입자 균일도를 증명할 수 있는 제조 기준을 갖춘 제품에 의료진과 소비자의 신뢰가 쏠리고 있습니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "병·의원/약국 중심 고농축 프리미엄 라인과 대중 유통 채널을 겨냥한 엔트리 라인으로 포트폴리오를 분화해 브랜드 인지도와 매출 볼륨을 동시에 확보하는 채널별 제형 이원화 전략이 유효합니다.",
+              "피부 침투율을 끌어올리는 나노 캡슐화와 공인 엑소좀 정제 공법을 상세페이지에 명시해 메디컬 더마의 과학적 실체를 강조해야 합니다."
+            ]
+          }
+        ]
+      },
+      {
+        id: "2026-10-21",
+        date: "2026-10-21",
+        title: "'링티' 5일 엑소좀 스킨부스터 출시 & 글로벌 '메디컬 프로시저 더마' 선언",
+        tags: ["PDRN·엑소좀", "신기술·특허", "시술사후관리"],
+        summary: "국민 수분음료 링티가 더마 브랜드 BTQ Lab을 론칭하고 5일 집중 엑소좀 스킨부스터를 선보였습니다. 글로벌 화장품 ODM사 이미인은 차기 메가트렌드로 '메디컬 프로시저 더마'를 공식 선언했습니다.",
+        sections: [
+          {
+            title: "1. 주요 기업 론칭: '링티', 엑소좀 스킨부스터 'BTQ Lab' 출격",
+            points: [
+              "누적 1억 포 판매를 기록한 링티가 더마코스메틱 브랜드 'BTQ Lab'을 정식 론칭하고 신제품 '5데이즈 엑소좀 스킨 부스팅 프로그램'을 출시했습니다.",
+              "수분 흡수 메커니즘을 경피 침투 기술에 접목해 시술 직후 5일간 엑소좀을 집중 공급하여 손상 장벽을 급속 재건하는 포맷입니다."
+            ]
+          },
+          {
+            title: "2. 글로벌 R&D 메가 트렌드: '메디컬 프로시저 더마' 시대 도래",
+            points: [
+              "화장품 ODM사 이미인이 글로벌 AI 빅데이터 분석을 통해 차세대 메가 트렌드로 '메디컬 프로시저 더마(시술 연계형 더마)'를 제시했습니다.",
+              "더마코스메틱이 단순 진정을 넘어 피부과 전문 시술 효과를 일상에서 모사하고 다운타임을 획기적으로 줄여주는 바이오-메디컬 솔루션으로 재편되고 있습니다."
+            ]
+          },
+          {
+            title: "3. B2B 엑스포 D-1 전야: 오송화장품뷰티산업엑스포 개막",
+            points: [
+              "청주 오스코에서 230개 기업이 참여하는 오송엑스포가 개막 전야를 마쳤습니다.",
+              "필수 지방산과 결합해 각질층 지질 구조를 신속히 재현하는 오메가 세라마이드와 바이오 인캡슐레이션 신기술이 해외 바이어 매칭 품목으로 공개됩니다."
+            ]
+          },
+          {
+            title: "4. 마케팅 및 제품 기획 인사이트",
+            points: [
+              "시술 후 5일 동안 엑소좀을 집중 투입해 다운타임을 끝낸다는 명확한 기간 한정(Time-Bound) 집중 앰플 키트는 구매 결심을 앞당기고 효과 체감도를 극대화합니다.",
+              "단순 저자극 크림이 아닌 시술 전후 프로토콜에 최적화된 고기능성 처방이라는 의학적 전문성을 상세페이지 메인 슬로건으로 채택해야 합니다."
+            ]
+          }
+        ]
+      }
+    ];
+
+    // --- Ingredients & Procedures Dictionary Data ---
+    const INGREDIENTS_DATA = [
+      {
+        name: "PDRN (폴리데옥시리보뉴클레오티드)",
+        category: "세포 재생 / 항염",
+        origin: "연어 DNA 또는 지치/해조류 식물성 바이오매스",
+        mechanism: "A2A 아데노신 수용체에 결합하여 염증성 사이토카인을 억제하고 VEGF 분비를 촉진해 섬유아세포 증식 및 미세혈관 재생 유도",
+        targetProcedure: "스킨부스터 주사, 프락셀, 포텐자 고주파 후 손상 복구",
+        recommendedRoutine: "시술 직후 1~7일 차 세안 직후 첫 단계 고농축 앰플 도포"
+      },
+      {
+        name: "엑소좀 (Exosome / 세포외소포체)",
+        category: "세포 간 신호전달체",
+        origin: "줄기세포 배양액 또는 식물 유산균 나노 소포체",
+        mechanism: "50~200nm 크기의 지질 이중층 소포체 안에 단백질, 성장인자, mRNA를 담아 표적 세포막과 융합하여 기저막 성장 및 자생력 활성화",
+        targetProcedure: "MTS, 미라젯, 레이저 토닝 직후 침투 케어",
+        recommendedRoutine: "피부 표면에 미세 채널이 개방된 시술 직후 72시간 골든타임 집중 도포"
+      },
+      {
+        name: "EGF (상피세포성장인자)",
+        category: "표피 상피화 / 기저막 재건",
+        origin: "인체 동일 서열 생합성 펩타이드",
+        mechanism: "표피의 EGFR 수용체와 결합하여 각질형성세포 증식을 촉진하고 상처 치유 속도를 가속화하여 다운타임 단축",
+        targetProcedure: "점 뺀 후, 박피성 필링, CO2 프락셔널 레이저",
+        recommendedRoutine: "세안 직후 물기 없는 상태에서 1차 흡수 후 1분 뒤 한 번 더 바르는 '더블 레이어링'"
+      },
+      {
+        name: "세라마이드 NP (Ceramide NP)",
+        category: "피부 장벽 지질 재건",
+        origin: "효모 발효 생합성 고순도 지질",
+        mechanism: "각질층 세포간 지질의 50%를 구성하며 라멜라 층상 배열을 형성해 경피 수분 손실(TEWL) 원천 봉쇄",
+        targetProcedure: "환절기 급격한 일교차 및 모든 레이저 시술 후 건조증",
+        recommendedRoutine: "콜레스테롤, 지방산과 3:1:1 비율로 배합된 크림으로 앰플 후 2단계 밀폐"
+      },
+      {
+        name: "엑토인 (Ectoin 5~7%)",
+        category: "세포막 보호 / 항스트레스",
+        origin: "극한 염호·사막 미생물 유래 천연 아미노산 유도체",
+        mechanism: "물 분자를 강력히 끌어당겨 세포막 주변에 견고한 하이드로 콤플렉스를 형성해 열 손상 및 단백질 변성 차단",
+        targetProcedure: "써마지, 울쎄라 등 고열 에너지 리프팅 시술 후",
+        recommendedRoutine: "열감이 남아있는 시술 당일부터 3일간 수분 크림 전단계 쉴드로 적용"
+      },
+      {
+        name: "알란테놀 (Allanthenol)",
+        category: "상피화 + 수분 진정",
+        origin: "알란토인(컴프리 추출물) + D-판테놀 복합체",
+        mechanism: "알란토인의 세포 증식 및 각질 연화 작용과 판테놀의 비타민 B5 전환 보습이 결합되어 피지 과다 없이 장벽 진정",
+        targetProcedure: "알라딘필, 블랙필, 스피큘 필링 후 각질 탈락기",
+        recommendedRoutine: "시술 3일 차부터 각질이 들뜰 때 문지르지 않고 수분 팩처럼 얹어두기"
+      },
+      {
+        name: "수크랄파트 (Sucralfate)",
+        category: "생체 피복 보호막",
+        origin: "위장 점막 보호 의약 원료의 피부과학 적용",
+        mechanism: "손상 부위의 삼출물 단백질과 결합하여 불용성 피복층을 형성하고 구리·아연 복합체와 함께 2차 오염 차단",
+        targetProcedure: "침습적 레이저, 화학 박피, 흉터 치료 후 상처 부위",
+        recommendedRoutine: "시술 부위에 얇은 연고막 형태로 도포하여 외부 오염원 물리적 차단"
+      },
+      {
+        name: "GHK-Cu (구리 펩타이드)",
+        category: "세포외기질(ECM) 합성 신호",
+        origin: "인체 혈장 유래 천연 구리 결합 트리펩타이드",
+        mechanism: "섬유아세포를 자극해 콜라겐, 엘라스틴, 글리코사미노글리칸(GAG) 합성을 촉진하고 상처 부위 모세혈관 신생 보조",
+        targetProcedure: "흉터 레이저, 포텐자 마이크로니들, 깊은 주름 시술",
+        recommendedRoutine: "천연 푸른빛 앰플을 비타민C와 시간차를 두고 단독 저녁 재생용으로 도포"
+      },
+      {
+        name: "카르노신 (Carnosine)",
+        category: "항당화 / 콜라겐 경화 방어",
+        origin: "베타-알라닌 + L-히스티딘 천연 디펩타이드",
+        mechanism: "신생 콜라겐이 체내 당과 결합해 단단하게 굳고 변색되는 최종당화산물(AGEs) 형성을 원천 억제하여 탄력 보존",
+        targetProcedure: "울쎄라, 써마지, 실리프팅 등 신생 콜라겐 생성 시술",
+        recommendedRoutine: "시술 1주일 후부터 콜라겐 재생 골든타임 동안 나이트 세럼으로 데일리 사용"
+      },
+      {
+        name: "비타민 B12 (사이아노코발아민)",
+        category: "신경성 자극 완화 / 홍조 진정",
+        origin: "미생물 발효 정제 천연 핑크 비타민",
+        mechanism: "피부 신경 말단의 히스타민 과민 반응을 억제하고 모세혈관벽을 안정화해 급성 작열감과 가려움증을 완화",
+        targetProcedure: "혈관 레이저, 피코토닝 후 만성 붉은기 및 화끈거림",
+        recommendedRoutine: "천연 핑크 앰플을 쿨링 팩 전단계에 도포하여 급성 홍반 즉각 진정"
+      },
+      {
+        name: "비타민 P (바이오플라보노이드)",
+        category: "모세혈관 투과성 정상화",
+        origin: "감귤류 루틴 / 동백 추출 플라보노이드 복합체",
+        mechanism: "확장된 모세혈관 벽의 취약성을 보강하고 미세 순환 투과성을 조절하여 혈관 확장성 홍조를 생물학적으로 억제",
+        targetProcedure: "토닝 시술 후 지속되는 안면 홍조 및 혈관 확장 피부",
+        recommendedRoutine: "아침저녁 저자극 워터 세럼 제형으로 붉은 부위 집중 패팅 흡수"
+      },
+      {
+        name: "나이아신아마이드 + 징크 PCA",
+        category: "PIH 색소 차단 / 피지 밸런싱",
+        origin: "비타민 B3 + 유기 아연 복합체",
+        mechanism: "멜라닌이 각질 세포로 전이되는 통로를 차단하고 과잉 피지를 조절해 고영양 재생 크림 도포 시 발생하는 모낭염 차단",
+        targetProcedure: "레이저 토닝 3일 차 이후 염증 후 색소침착(PIH) 방어",
+        recommendedRoutine: "시술 3일 차부터 유분기를 덜어내고 바르는 수분 베이스 브릿지 세럼"
+      }
+    ];
+
+    // --- State Management ---
+    let currentBriefingId = BRIEFINGS_DATA[0].id;
+    let currentCategoryFilter = "all";
+    let searchQuery = "";
+    let bookmarks = [];
+
+    // Load Bookmarks from LocalStorage safely
+    try {
+      const saved = localStorage.getItem("kderma_bookmarks");
+      if (saved) bookmarks = JSON.parse(saved);
+    } catch (e) {
+      bookmarks = [];
+    }
+
+    // --- DOM Elements ---
+    const dateSelect = document.getElementById("date-select");
+    const briefingTitle = document.getElementById("briefing-title");
+    const briefingDateBadge = document.getElementById("briefing-date-badge");
+    const briefingBody = document.getElementById("briefing-body");
+    const archiveList = document.getElementById("archive-list");
+    const searchInput = document.getElementById("search-input");
+    const searchClear = document.getElementById("search-clear");
+    const categoryChips = document.getElementById("category-chips");
+    const btnBookmark = document.getElementById("btn-bookmark");
+    const bookmarkIcon = document.getElementById("bookmark-icon");
+    const bookmarkText = document.getElementById("bookmark-text");
+    const bookmarkBadge = document.getElementById("bookmark-badge");
+    const btnCopyBriefing = document.getElementById("btn-copy-briefing");
+
+    // Views
+    const viewBriefings = document.getElementById("view-briefings");
+    const viewIngredients = document.getElementById("view-ingredients");
+    const viewBookmarks = document.getElementById("view-bookmarks");
+    const ingredientsGrid = document.getElementById("ingredients-grid");
+    const bookmarksContainer = document.getElementById("bookmarks-container");
+
+    // Nav Buttons
+    const navBriefings = document.getElementById("nav-briefings");
+    const navIngredients = document.getElementById("nav-ingredients");
+    const navBookmarks = document.getElementById("nav-bookmarks");
+    const mobileNavBriefings = document.getElementById("mobile-nav-briefings");
+    const mobileNavIngredients = document.getElementById("mobile-nav-ingredients");
+    const mobileNavBookmarks = document.getElementById("mobile-nav-bookmarks");
+
+    // Deploy Modal Elements
+    const btnDeployGuide = document.getElementById("btn-deploy-guide");
+    const deployModal = document.getElementById("deploy-modal");
+    const btnCloseDeploy = document.getElementById("btn-close-deploy");
+    const btnModalOk = document.getElementById("btn-modal-ok");
+
+    // Theme Toggle
+    const themeToggle = document.getElementById("theme-toggle");
+    const themeSun = document.getElementById("theme-sun");
+    const themeMoon = document.getElementById("theme-moon");
+
+    // --- Toast Notification Helper ---
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      const toastMsg = document.getElementById("toast-message");
+      toastMsg.textContent = msg;
+      toast.classList.remove("translate-y-20", "opacity-0");
+      toast.classList.add("translate-y-0", "opacity-100");
+      setTimeout(() => {
+        toast.classList.remove("translate-y-0", "opacity-100");
+        toast.classList.add("translate-y-20", "opacity-0");
+      }, 2500);
+    }
+
+    // --- Render Date Selector Options ---
+    function renderDateOptions() {
+      dateSelect.innerHTML = "";
+      BRIEFINGS_DATA.forEach(b => {
+        const opt = document.createElement("option");
+        opt.value = b.id;
+        opt.textContent = `${b.date} 브리핑`;
+        if (b.id === currentBriefingId) opt.selected = true;
+        dateSelect.appendChild(opt);
+      });
+    }
+
+    // --- Render Main Briefing ---
+    function renderBriefing(id) {
+      const briefing = BRIEFINGS_DATA.find(b => b.id === id) || BRIEFINGS_DATA[0];
+      currentBriefingId = briefing.id;
+      dateSelect.value = briefing.id;
+
+      briefingDateBadge.textContent = briefing.date;
+      briefingTitle.textContent = briefing.title;
+
+      // Update Bookmark State on Button
+      updateBookmarkBtnState(briefing.id);
+
+      // Render Sections
+      let html = "";
+      briefing.sections.forEach((sec, idx) => {
+        const icons = [
+          `<svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>`,
+          `<svg class="w-5 h-5 text-teal-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>`,
+          `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>`,
+          `<svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>`
+        ];
+        const iconSvg = icons[idx % icons.length];
+
+        html += `
+          <div class="space-y-3">
+            <h3 class="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2.5 pb-2 border-b border-slate-100 dark:border-slate-700/60">
+              ${iconSvg}
+              <span>${sec.title}</span>
+            </h3>
+            <ul class="space-y-2 text-sm pl-2">
+              ${sec.points.map(pt => `
+                <li class="flex items-start gap-2.5">
+                  <span class="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mt-2 shrink-0"></span>
+                  <span>${pt}</span>
+                </li>
+              `).join('')}
+            </ul>
+          </div>
+        `;
+      });
+
+      briefingBody.innerHTML = html;
+    }
+
+    // --- Render Archive Card Strip ---
+    function renderArchiveCards() {
+      archiveList.innerHTML = "";
+
+      let filtered = BRIEFINGS_DATA;
+
+      // Filter by Category
+      if (currentCategoryFilter !== "all") {
+        filtered = filtered.filter(b => b.tags.includes(currentCategoryFilter));
+      }
+
+      // Filter by Search Query
+      if (searchQuery.trim() !== "") {
+        const q = searchQuery.toLowerCase();
+        filtered = filtered.filter(b => 
+          b.title.toLowerCase().includes(q) ||
+          b.summary.toLowerCase().includes(q) ||
+          b.tags.some(t => t.toLowerCase().includes(q))
+        );
+      }
+
+      if (filtered.length === 0) {
+        archiveList.innerHTML = `
+          <div class="col-span-full py-8 text-center text-slate-400 text-sm bg-white dark:bg-slate-800 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
+            검색 결과와 일치하는 브리핑이 없습니다.
+          </div>
+        `;
+        return;
+      }
+
+      filtered.forEach(b => {
+        const card = document.createElement("div");
+        card.className = `p-4 rounded-xl border transition-all cursor-pointer bg-white dark:bg-slate-800 hover:shadow-md ${
+          b.id === currentBriefingId 
+            ? "border-emerald-500 ring-2 ring-emerald-500/20" 
+            : "border-slate-200 dark:border-slate-700/60 hover:border-slate-300"
+        }`;
+        card.innerHTML = `
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+            <span class="font-bold text-emerald-600 dark:text-emerald-400">${b.date}</span>
+            <div class="flex gap-1">
+              ${b.tags.map(t => `<span class="bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-[10px] text-slate-500 dark:text-slate-300">#${t}</span>`).join('')}
+            </div>
+          </div>
+          <h4 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-1 mb-1">${b.title}</h4>
+          <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed">${b.summary}</p>
+        `;
+        card.addEventListener("click", () => {
+          renderBriefing(b.id);
+          renderArchiveCards();
+          window.scrollTo({ top: 220, behavior: "smooth" });
+        });
+        archiveList.appendChild(card);
+      });
+    }
+
+    // --- Render Ingredients Dictionary ---
+    function renderIngredients() {
+      ingredientsGrid.innerHTML = "";
+      INGREDIENTS_DATA.forEach(ing => {
+        const item = document.createElement("div");
+        item.className = "p-5 rounded-xl border border-slate-200 dark:border-slate-700/60 bg-slate-50 dark:bg-slate-900/40 space-y-3 hover:border-emerald-400 transition-all";
+        item.innerHTML = `
+          <div class="flex items-start justify-between gap-2">
+            <div>
+              <span class="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300">${ing.category}</span>
+              <h4 class="text-base font-bold text-slate-900 dark:text-white mt-1.5">${ing.name}</h4>
+            </div>
+          </div>
+          <div class="text-xs space-y-1.5 text-slate-600 dark:text-slate-300">
+            <p><strong class="text-slate-900 dark:text-white">기원:</strong> ${ing.origin}</p>
+            <p><strong class="text-slate-900 dark:text-white">작용 기전:</strong> ${ing.mechanism}</p>
+            <p><strong class="text-emerald-600 dark:text-emerald-400">추천 시술:</strong> ${ing.targetProcedure}</p>
+            <p><strong class="text-blue-600 dark:text-blue-400">홈케어 팁:</strong> ${ing.recommendedRoutine}</p>
+          </div>
+        `;
+        ingredientsGrid.appendChild(item);
+      });
+    }
+
+    // --- Bookmark Management ---
+    function updateBookmarkBtnState(id) {
+      const isBookmarked = bookmarks.includes(id);
+      if (isBookmarked) {
+        bookmarkIcon.classList.remove("text-slate-400");
+        bookmarkIcon.classList.add("text-emerald-500", "fill-emerald-500");
+        bookmarkText.textContent = "저장됨";
+      } else {
+        bookmarkIcon.classList.remove("text-emerald-500", "fill-emerald-500");
+        bookmarkIcon.classList.add("text-slate-400");
+        bookmarkText.textContent = "북마크";
+      }
+      updateBookmarkBadge();
+    }
+
+    function toggleBookmark() {
+      const id = currentBriefingId;
+      const idx = bookmarks.indexOf(id);
+      if (idx > -1) {
+        bookmarks.splice(idx, 1);
+        showToast("북마크가 해제되었습니다.");
+      } else {
+        bookmarks.push(id);
+        showToast("브리핑이 북마크에 저장되었습니다.");
+      }
+      try {
+        localStorage.setItem("kderma_bookmarks", JSON.stringify(bookmarks));
+      } catch (e) {}
+      updateBookmarkBtnState(id);
+      renderBookmarksView();
+    }
+
+    function updateBookmarkBadge() {
+      if (bookmarks.length > 0) {
+        bookmarkBadge.textContent = bookmarks.length;
+        bookmarkBadge.classList.remove("hidden");
+      } else {
+        bookmarkBadge.classList.add("hidden");
+      }
+    }
+
+    function renderBookmarksView() {
+      bookmarksContainer.innerHTML = "";
+      if (bookmarks.length === 0) {
+        bookmarksContainer.innerHTML = `
+          <div class="py-12 text-center text-slate-400 text-sm">
+            저장된 북마크가 없습니다. 유용한 브리핑을 북마크해 보세요.
+          </div>
+        `;
+        return;
+      }
+
+      const bookmarkedBriefings = BRIEFINGS_DATA.filter(b => bookmarks.includes(b.id));
+      bookmarkedBriefings.forEach(b => {
+        const item = document.createElement("div");
+        item.className = "p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 flex items-center justify-between gap-4";
+        item.innerHTML = `
+          <div class="flex-1 cursor-pointer">
+            <div class="text-xs font-bold text-emerald-600 dark:text-emerald-400 mb-1">${b.date}</div>
+            <h4 class="text-sm font-bold text-slate-900 dark:text-white line-clamp-1">${b.title}</h4>
+            <p class="text-xs text-slate-500 line-clamp-1 mt-0.5">${b.summary}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button data-id="${b.id}" class="btn-goto-briefing px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700">열람</button>
+            <button data-id="${b.id}" class="btn-remove-bookmark text-slate-400 hover:text-rose-500 p-1.5 rounded-lg text-xs" title="삭제">&times;</button>
+          </div>
+        `;
+
+        item.querySelector(".btn-goto-briefing").addEventListener("click", () => {
+          switchView("briefings");
+          renderBriefing(b.id);
+          renderArchiveCards();
+        });
+
+        item.querySelector(".btn-remove-bookmark").addEventListener("click", () => {
+          const id = b.id;
+          const idx = bookmarks.indexOf(id);
+          if (idx > -1) {
+            bookmarks.splice(idx, 1);
+            try { localStorage.setItem("kderma_bookmarks", JSON.stringify(bookmarks)); } catch (e) {}
+            renderBookmarksView();
+            updateBookmarkBtnState(currentBriefingId);
+            showToast("북마크가 삭제되었습니다.");
+          }
+        });
+
+        bookmarksContainer.appendChild(item);
+      });
+    }
+
+    // --- Copy Briefing to Clipboard ---
+    function copyBriefingText() {
+      const briefing = BRIEFINGS_DATA.find(b => b.id === currentBriefingId);
+      if (!briefing) return;
+
+      let text = `[K-더마 데일리 브리핑] ${briefing.date}\n`;
+      text += `${briefing.title}\n\n`;
+      briefing.sections.forEach(s => {
+        text += `■ ${s.title}\n`;
+        s.points.forEach(p => { text += `• ${p}\n`; });
+        text += `\n`;
+      });
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(() => {
+          showToast("브리핑 전문이 클립보드에 복사되었습니다!");
+        }).catch(() => fallbackCopy(text));
+      } else {
+        fallbackCopy(text);
+      }
+    }
+
+    function fallbackCopy(text) {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.style.position = "fixed";
+      ta.style.left = "-9999px";
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand("copy");
+        showToast("브리핑 전문이 클립보드에 복사되었습니다!");
+      } catch (err) {
+        showToast("복사 실패. 브라우저 보안 설정을 확인하세요.");
+      }
+      document.body.removeChild(ta);
+    }
+
+    // --- Tab View Switching ---
+    function switchView(viewName) {
+      // Hide all views
+      viewBriefings.classList.add("hidden");
+      viewIngredients.classList.add("hidden");
+      viewBookmarks.classList.add("hidden");
+
+      // Reset desktop nav buttons
+      [navBriefings, navIngredients, navBookmarks].forEach(btn => {
+        btn.className = "px-4 py-1.5 rounded-lg transition-all text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white";
+      });
+
+      // Reset mobile nav buttons
+      [mobileNavBriefings, mobileNavIngredients, mobileNavBookmarks].forEach(btn => {
+        btn.className = "text-slate-500 dark:text-slate-400";
+      });
+
+      if (viewName === "briefings") {
+        viewBriefings.classList.remove("hidden");
+        navBriefings.className = "px-4 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm text-emerald-600 dark:text-emerald-400";
+        mobileNavBriefings.className = "text-emerald-600 dark:text-emerald-400 font-semibold";
+      } else if (viewName === "ingredients") {
+        viewIngredients.classList.remove("hidden");
+        navIngredients.className = "px-4 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm text-emerald-600 dark:text-emerald-400";
+        mobileNavIngredients.className = "text-emerald-600 dark:text-emerald-400 font-semibold";
+        renderIngredients();
+      } else if (viewName === "bookmarks") {
+        viewBookmarks.classList.remove("hidden");
+        navBookmarks.className = "px-4 py-1.5 rounded-lg transition-all bg-white dark:bg-slate-700 shadow-sm text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5";
+        mobileNavBookmarks.className = "text-emerald-600 dark:text-emerald-400 font-semibold";
+        renderBookmarksView();
+      }
+    }
+
+    // --- Dark Mode Theme Toggle ---
+    function initTheme() {
+      const isDark = localStorage.getItem("kderma_theme") === "dark" || 
+        (!localStorage.getItem("kderma_theme") && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      
+      if (isDark) {
+        document.documentElement.classList.add("dark");
+        themeSun.classList.remove("hidden");
+        themeMoon.classList.add("hidden");
+      } else {
+        document.documentElement.classList.remove("dark");
+        themeSun.classList.add("hidden");
+        themeMoon.classList.remove("hidden");
+      }
+    }
+
+    function toggleTheme() {
+      const isDark = document.documentElement.classList.toggle("dark");
+      try {
+        localStorage.setItem("kderma_theme", isDark ? "dark" : "light");
+      } catch (e) {}
+
+      if (isDark) {
+        themeSun.classList.remove("hidden");
+        themeMoon.classList.add("hidden");
+      } else {
+        themeSun.classList.add("hidden");
+        themeMoon.classList.remove("hidden");
+      }
+    }
+
+    // --- Event Listeners Setup ---
+    function setupEvents() {
+      // Date Selector
+      dateSelect.addEventListener("change", (e) => {
+        renderBriefing(e.target.value);
+        renderArchiveCards();
+      });
+
+      // Search Filter
+      searchInput.addEventListener("input", (e) => {
+        searchQuery = e.target.value;
+        if (searchQuery.trim() !== "") {
+          searchClear.classList.remove("hidden");
+        } else {
+          searchClear.classList.add("hidden");
+        }
+        renderArchiveCards();
+      });
+
+      searchClear.addEventListener("click", () => {
+        searchInput.value = "";
+        searchQuery = "";
+        searchClear.classList.add("hidden");
+        renderArchiveCards();
+      });
+
+      // Category Chips
+      categoryChips.addEventListener("click", (e) => {
+        const btn = e.target.closest(".cat-chip");
+        if (!btn) return;
+        currentCategoryFilter = btn.dataset.cat;
+
+        categoryChips.querySelectorAll(".cat-chip").forEach(c => {
+          c.className = "cat-chip px-3 py-1.5 rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-medium hover:bg-slate-200 transition-all";
+        });
+        btn.className = "cat-chip px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-medium shadow-sm transition-all";
+
+        renderArchiveCards();
+      });
+
+      // Bookmark Toggle
+      btnBookmark.addEventListener("click", toggleBookmark);
+
+      // Copy Briefing
+      btnCopyBriefing.addEventListener("click", copyBriefingText);
+
+      // Clear all bookmarks
+      document.getElementById("btn-clear-bookmarks").addEventListener("click", () => {
+        if (bookmarks.length === 0) {
+          showToast("삭제할 북마크가 없습니다.");
+          return;
+        }
+        bookmarks = [];
+        try { localStorage.setItem("kderma_bookmarks", JSON.stringify(bookmarks)); } catch (e) {}
+        renderBookmarksView();
+        updateBookmarkBtnState(currentBriefingId);
+        showToast("모든 북마크가 삭제되었습니다.");
+      });
+
+      // Nav Tabs
+      navBriefings.addEventListener("click", () => switchView("briefings"));
+      navIngredients.addEventListener("click", () => switchView("ingredients"));
+      navBookmarks.addEventListener("click", () => switchView("bookmarks"));
+
+      mobileNavBriefings.addEventListener("click", () => switchView("briefings"));
+      mobileNavIngredients.addEventListener("click", () => switchView("ingredients"));
+      mobileNavBookmarks.addEventListener("click", () => switchView("bookmarks"));
+
+      // Deploy Modal
+      btnDeployGuide.addEventListener("click", () => deployModal.classList.remove("hidden"));
+      btnCloseDeploy.addEventListener("click", () => deployModal.classList.add("hidden"));
+      btnModalOk.addEventListener("click", () => deployModal.classList.add("hidden"));
+      deployModal.addEventListener("click", (e) => {
+        if (e.target === deployModal) deployModal.classList.add("hidden");
+      });
+
+      // Theme Toggle
+      themeToggle.addEventListener("click", toggleTheme);
+    }
+
+    // --- Initialization ---
+    window.addEventListener("DOMContentLoaded", () => {
+      initTheme();
+      renderDateOptions();
+      renderBriefing(BRIEFINGS_DATA[0].id);
+      renderArchiveCards();
+      renderIngredients();
+      updateBookmarkBadge();
+      setupEvents();
+    });
+  </script>
+</body>
+</html>
