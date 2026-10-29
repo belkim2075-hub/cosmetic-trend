@@ -2,7 +2,7 @@
 데일리 애프터케어 및 더마코스메틱 트렌드 자동 브리핑 봇 (Daily Derma Trend Bot)
 =============================================================================
 이 스크립트는 매일 자동으로 최신 애프터케어 및 더마코스메틱 뉴스를 수집하고,
-LLM(Google Gemini API)을 통해 핵심 트렌드를 분석·요약한 뒤:
+Google Gemini API(최신 google-genai SDK 및 REST API 지원)를 통해 핵심 트렌드를 분석·요약한 뒤:
 1. 웹 대시보드(index.html 또는 derma_trend_dashboard.html)를 자동으로 갱신(최신 브리핑 추가)하고,
 2. 텔레그램(Telegram) 또는 슬랙(Slack), 이메일로 자동 전송합니다.
 
@@ -11,7 +11,7 @@ LLM(Google Gemini API)을 통해 핵심 트렌드를 분석·요약한 뒤:
 2. GitHub Actions: 서버 비용 0원으로 클라우드에서 매일 오전 9시(KST) 자동 실행 및 웹사이트 배포
 
 [필요 라이브러리]
-pip install requests google-generativeai beautifulsoup4 python-dotenv
+pip install requests google-genai python-dotenv
 """
 
 import os
@@ -95,23 +95,15 @@ def fetch_latest_news(keywords, max_items_per_kw=4):
 
 
 # ==============================================================================
-# 2. LLM 브리핑 생성 모듈 (Google Gemini API)
+# 2. LLM 브리핑 생성 모듈 (최신 google-genai 및 REST API 지원)
 # ==============================================================================
 def generate_trend_briefing(articles):
     """
-    수집된 뉴스 기사 리스트를 기반으로 Google Gemini API를 호출하여
+    수집된 뉴스 기사 리스트를 기반으로 최신 Gemini API를 호출하여
     체계적인 데일리 더마코스메틱 트렌드 브리핑 텍스트를 생성합니다.
     """
     if not GEMINI_API_KEY:
         print("경고: GEMINI_API_KEY가 설정되지 않아 규칙 기반 기본 요약본을 생성합니다.")
-        return create_fallback_briefing(articles)
-
-    try:
-        import google.generativeai as genai
-        genai.configure(api_key=GEMINI_API_KEY)
-        model = genai.GenerativeModel("gemini-1.5-flash")
-    except ImportError:
-        print("google-generativeai 패키지가 설치되지 않았습니다. 기본 요약본을 사용합니다.")
         return create_fallback_briefing(articles)
 
     context_lines = []
@@ -134,12 +126,65 @@ def generate_trend_briefing(articles):
 
 각 항목은 개조식 불릿(-)으로 간결하고 전문적인 문체로 작성해주세요."""
 
-    response = model.generate_content(prompt)
-    return response.text
+    # 1. 최신 google-genai SDK 방식 시도
+    try:
+        from google import genai
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        for model_name in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+            try:
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=prompt
+                )
+                if response and hasattr(response, "text") and response.text:
+                    print(f"✓ 최신 google-genai SDK ({model_name})로 브리핑 생성 성공")
+                    return response.text
+            except Exception as e:
+                print(f"google-genai ({model_name}) 호출 실패: {e}")
+    except ImportError:
+        pass
+
+    # 2. 구버전 google.generativeai SDK 방식 시도 (하위 호환)
+    try:
+        import google.generativeai as legacy_genai
+        legacy_genai.configure(api_key=GEMINI_API_KEY)
+        for model_name in ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]:
+            try:
+                model = legacy_genai.GenerativeModel(model_name)
+                response = model.generate_content(prompt)
+                if response and response.text:
+                    print(f"✓ 구버전 SDK ({model_name})로 브리핑 생성 성공")
+                    return response.text
+            except Exception as e:
+                print(f"구버전 SDK ({model_name}) 호출 실패: {e}")
+    except ImportError:
+        pass
+
+    # 3. 직접 REST API 호출 (SDK 버전 이슈 없이 100% 안전하게 동작)
+    try:
+        for model_name in ["gemini-2.5-flash", "gemini-2.0-flash"]:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/{model_name}:generateContent?key={GEMINI_API_KEY}"
+            payload = {
+                "contents": [{"parts": [{"text": prompt}]}]
+            }
+            res = requests.post(url, json=payload, headers={"Content-Type": "application/json"}, timeout=30)
+            if res.status_code == 200:
+                data = res.json()
+                text = data["candidates"][0]["content"]["parts"][0]["text"]
+                print(f"✓ REST API ({model_name})로 브리핑 생성 성공")
+                return text
+            else:
+                print(f"REST API ({model_name}) 응답 코드: {res.status_code}")
+    except Exception as e:
+        print(f"REST API 호출 중 오류: {e}")
+
+    # 모든 API 시도 실패 시 기본 브리핑 생성
+    print("경고: AI 모델 호출에 실패하여 기본 템플릿 브리핑으로 대체합니다.")
+    return create_fallback_briefing(articles)
 
 
 def create_fallback_briefing(articles):
-    """API 키가 없을 때 동작하는 규칙 기반 기본 브리핑 템플릿"""
+    """API 키가 없거나 호출 실패 시 동작하는 규칙 기반 기본 브리핑 템플릿"""
     today_str = datetime.now().strftime("%Y년 %m월 %d일")
     lines = [
         f"📅 {today_str} 데일리 애프터케어 & 더마코스메틱 주요 기사",
@@ -172,16 +217,15 @@ def update_html_dashboard(briefing_text, html_filename="index.html"):
     생성된 텍스트 브리핑을 파싱하여 index.html 또는 derma_trend_dashboard.html 파일 내부의
     BRIEFINGS_DATA 배열 맨 앞에 자동으로 추가합니다.
     """
-    # 탐색할 파일 경로 후보
     possible_paths = [
         html_filename,
-        "derma_trend_dashboard.html",
         "index.html",
+        "derma_trend_dashboard.html",
         os.path.join(os.path.dirname(__file__), html_filename),
         os.path.join(os.path.dirname(__file__), "index.html"),
         os.path.join(os.path.dirname(__file__), "derma_trend_dashboard.html"),
-        os.path.join("artifacts", "file_generation", "ttl=63d", "output", "derma_trend_dashboard.html"),
         os.path.join("artifacts", "file_generation", "ttl=63d", "output", "index.html"),
+        os.path.join("artifacts", "file_generation", "ttl=63d", "output", "derma_trend_dashboard.html"),
     ]
 
     target_path = None
@@ -191,7 +235,7 @@ def update_html_dashboard(briefing_text, html_filename="index.html"):
             break
 
     if not target_path:
-        print(f"대시보드 HTML 파일({html_filename} / derma_trend_dashboard.html)을 찾지 못해 HTML 업데이트를 건너뜁니다.")
+        print(f"대시보드 HTML 파일({html_filename})을 찾지 못해 HTML 업데이트를 건너뜁니다.")
         return False
 
     try:
