@@ -1,0 +1,40 @@
+name: Daily Derma Trend Briefing
+
+on:
+  schedule:
+    # 매일 한국 시간 오전 9시 (UTC 00:00) 자동 실행
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 언제든 수동 실행 지원
+
+permissions:
+  contents: write
+
+jobs:
+  briefing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 저장소 코드 가져오기
+        uses: actions/checkout@v4
+
+      - name: 파이썬 설정
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 필수 패키지 설치
+        run: |
+          pip install requests google-generativeai python-dotenv
+
+      - name: 뉴스 수집 및 사이트 업데이트 실행
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          python daily_derma_trend_bot.py
+
+      - name: 업데이트된 index.html 사이트에 자동 저장
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add index.html
+          git commit -m "Auto-update daily briefing [$(date +'%Y-%m-%d')]" || echo "변경사항 없음"
+          git push
